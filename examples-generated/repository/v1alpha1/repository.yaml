@@ -1,0 +1,11 @@
+apiVersion: repository.upbound.io/v1alpha1
+kind: Repository
+metadata:
+  annotations:
+    meta.upbound.io/example-id: repository/v1alpha1/repository
+  labels:
+    testing.upbound.io/example-name: infrastructure
+  name: infrastructure
+spec:
+  forProvider:
+    owner: myteam

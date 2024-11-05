@@ -1,40 +1,822 @@
-name: hashicorp/null
+name: DrFaust92/bitbucket
 resources:
-    null_resource:
+    bitbucket_branch_restriction:
         subCategory: ""
-        description: The null_resource resource implements the standard resource lifecycle but takes no further action. On Terraform 1.4 and later, use the terraform_data resource type https://developer.hashicorp.com/terraform/language/resources/terraform-data instead. The triggers argument allows specifying an arbitrary set of values that, when changed, will cause the resource to be replaced.
-        name: null_resource
-        title: null_resource Resource - terraform-provider-null
+        description: Provides a Bitbucket Branch Restriction
+        name: bitbucket_branch_restriction
+        title: bitbucket_branch_restriction
         examples:
-            - name: cluster
+            - name: master
               manifest: |-
                 {
-                  "connection": [
+                  "groups": [
                     {
-                      "host": "${element(aws_instance.cluster[*].public_ip, 0)}"
+                      "owner": "my-owner",
+                      "slug": "my-group"
                     }
                   ],
-                  "provisioner": {
-                    "remote-exec": [
-                      {
-                        "inline": [
-                          "bootstrap-cluster.sh ${join(\" \",\n      aws_instance.cluster[*].private_ip)}"
-                        ]
-                      }
-                    ]
-                  },
-                  "triggers": {
-                    "cluster_instance_ids": "${join(\",\", aws_instance.cluster[*].id)}"
-                  }
+                  "kind": "push",
+                  "owner": "myteam",
+                  "pattern": "master",
+                  "repository": "terraform-code",
+                  "users": [
+                    "my-bitbucket-username"
+                  ]
                 }
-              dependencies:
-                aws_instance.cluster: |-
+        argumentDocs:
+            branch_match_kind: '- (Optional) Indicates how the restriction is matched against a branch. The default is glob. Valid values: branching_model, glob.'
+            branch_type: '- (Optional) Apply the restriction to branches of this type. Active when branch_match_kind is branching_model. The branch type will be calculated using the branching model configured for the repository. Valid values: feature, bugfix, release, hotfix, development, production.'
+            groups: '- (Optional) A list of groups to use.'
+            kind: '- (Required) The type of restriction that is being applied. Valid values can be found in docs.'
+            owner: |-
+                - (Required) The owner of this repository. Can be you or any team you
+                have write access to.
+            pattern: '- (Optional) Apply the restriction to branches that match this pattern. Active when branch_match_kind is glob. Will be empty when branch_match_kind is branching_model.'
+            repository: '- (Required) The name of the repository.'
+            users: '- (Optional) A list of users to use.'
+            value: '- (Optional) A value applied to the restriction kind. Currently only applicable to require_passing_builds_to_merge, require_default_reviewer_approvals_to_merge and require_approvals_to_merge.'
+        importStatements: []
+    bitbucket_branching_model:
+        subCategory: ""
+        description: Provides a Bitbucket Branching Model
+        name: bitbucket_branching_model
+        title: bitbucket_branching_model
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "branch_type": [
                     {
-                      "ami": "ami-0dcc1e21636832c5d",
-                      "count": 3,
-                      "instance_type": "m5.large"
+                      "enabled": true,
+                      "kind": "feature",
+                      "prefix": "test/"
+                    },
+                    {
+                      "enabled": true,
+                      "kind": "hotfix",
+                      "prefix": "hotfix/"
+                    },
+                    {
+                      "enabled": true,
+                      "kind": "release",
+                      "prefix": "release/"
+                    },
+                    {
+                      "enabled": true,
+                      "kind": "bugfix",
+                      "prefix": "bugfix/"
+                    }
+                  ],
+                  "development": [
+                    {
+                      "use_mainbranch": true
+                    }
+                  ],
+                  "owner": "example",
+                  "repository": "${bitbucket_repository.test.name}"
+                }
+              references:
+                repository: bitbucket_repository.test.name
+              dependencies:
+                bitbucket_repository.test: |-
+                    {
+                      "name": "example",
+                      "owner": "example"
                     }
         argumentDocs:
-            id: (String) This is set to a random value at create time.
-            triggers: (Map of String) A map of arbitrary strings that, when changed, will force the null resource to be replaced, re-running any associated provisioners.
+            branch_does_not_exist: '- (Optional) Optional and only returned for a repository''s branching model. Indicates if the indicated branch exists on the repository (false) or not (true). This is useful for determining a fallback to the mainbranch when a repository is inheriting its project''s branching model.'
+            branch_type: '- (Required) A set of branch type to define feature, bugfix, release, hotfix prefixes. See Branch Type below.'
+            development: '- (Optional) The development branch can be configured to a specific branch or to track the main branch. When set to a specific branch it must currently exist. Only the passed properties will be updated. The properties not passed will be left unchanged. A request without a development property will leave the development branch unchanged. See Development below.'
+            enabled: '- (Optional) Indicates if branch is enabled or not.'
+            kind: '- (Required) The kind of the branch type. Valid values are feature, bugfix, release, hotfix.'
+            name: '- (Optional) The configured branch. It must be null when use_mainbranch is true. Otherwise it must be a non-empty value. It is possible for the configured branch to not exist (e.g. it was deleted after the settings are set).'
+            owner: |-
+                - (Required) The owner of this repository. Can be you or any team you
+                have write access to.
+            prefix: '- (Optional) The prefix for this branch type. A branch with this prefix will be classified as per kind. The prefix of an enabled branch type must be a valid branch prefix. Additionally, it cannot be blank, empty or null. The prefix for a disabled branch type can be empty or invalid.'
+            production: '- (Optional) The production branch can be a specific branch, the main branch or disabled. When set to a specific branch it must currently exist. The enabled property can be used to enable (true) or disable (false) it. Only the passed properties will be updated. The properties not passed will be left unchanged. A request without a production property will leave the production branch unchanged. See Production below.'
+            repository: '- (Required) The name of the repository.'
+            use_mainbranch: '- (Optional) Indicates if the setting points at an explicit branch (false) or tracks the main branch (true). When true the name must be null or not provided. When false the name must contain a non-empty branch name.'
+        importStatements: []
+    bitbucket_commit_file:
+        subCategory: ""
+        description: Commit a file
+        name: bitbucket_commit_file
+        title: bitbucket_commit_file
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "branch": "main",
+                  "commit_author": "Test \u003ctest@test.local\u003e",
+                  "commit_message": "test",
+                  "content": "abc",
+                  "filename": "README.md",
+                  "repo_slug": "test",
+                  "workspace": "test"
+                }
+        argumentDocs:
+            branch: '- (Required) Git branch.'
+            commit_author: '- (Required) Committer author to use.'
+            commit_message: '- (Required) The message of the commit.'
+            content: '- (Required) The file content.'
+            filename: '- (Required) The path of the file to manage.'
+            repo_slug: '- (Required) The repository slug.'
+            workspace: '- (Required) The workspace id.'
+        importStatements: []
+    bitbucket_default_reviewers:
+        subCategory: ""
+        description: Provides support for setting up default reviews for bitbucket.
+        name: bitbucket_default_reviewers
+        title: bitbucket_default_reviewers
+        examples:
+            - name: infrastructure
+              manifest: |-
+                {
+                  "owner": "myteam",
+                  "repository": "terraform-code",
+                  "reviewers": [
+                    "${data.bitbucket_user.reviewer.uuid}"
+                  ]
+                }
+        argumentDocs:
+            owner: |-
+                - (Required) The owner of this repository. Can be you or any team you
+                have write access to.
+            repository: '- (Required) The name of the repository.'
+            reviewers: '- (Required) A list of reviewers to use.'
+        importStatements: []
+    bitbucket_deploy_key:
+        subCategory: ""
+        description: Provides a Bitbucket Deploy Key
+        name: bitbucket_deploy_key
+        title: bitbucket_deploy_key
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKqP3Cr632C2dNhhgKVcon4ldUSAeKiku2yP9O9/bDtY",
+                  "label": "test-key",
+                  "repository": "example",
+                  "workspace": "example"
+                }
+        argumentDocs:
+            comment: '- The comment parsed from the Deploy key (if present)'
+            key: '- (Required) The SSH public key value in OpenSSH format.'
+            key_id: '- The Deploy key''s ID.'
+            label: '- (Optional) The user-defined label for the Deploy key'
+            repository: '- (Required) The Repository to create deploy key in.'
+            workspace: '- (Required) The Workspace where the repository resides.'
+        importStatements: []
+    bitbucket_deployment:
+        subCategory: ""
+        description: Manage your pipelines repository deployment environments
+        name: bitbucket_deployment
+        title: bitbucket_deployment
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "name": "test",
+                  "repository": "${bitbucket_repository.monorepo.id}",
+                  "stage": "Test"
+                }
+              references:
+                repository: bitbucket_repository.monorepo.id
+              dependencies:
+                bitbucket_repository.monorepo: |-
+                    {
+                      "name": "illusions",
+                      "owner": "gob",
+                      "pipelines_enabled": true
+                    }
+        argumentDocs:
+            admin_only: '- (Required) Only Admins can deploy this deployment stage.'
+            name: '- (Required) The name of the deployment environment'
+            repository: '- (Required) The repository ID to which you want to assign this deployment environment to'
+            restrictions: '- (Optional) Deployment restrictions. See Restrictions below.'
+            stage: '- (Required) The stage (Test, Staging, Production)'
+            uuid: '- (Computed) The UUID identifying the deployment.'
+        importStatements: []
+    bitbucket_deployment_variable:
+        subCategory: ""
+        description: Manage variables for your pipelines deployment environments
+        name: bitbucket_deployment_variable
+        title: bitbucket_deployment_variable
+        examples:
+            - name: country
+              manifest: |-
+                {
+                  "deployment": "${bitbucket_deployment.test.id}",
+                  "key": "COUNTRY",
+                  "secured": false,
+                  "value": "Kenya"
+                }
+              references:
+                deployment: bitbucket_deployment.test.id
+              dependencies:
+                bitbucket_deployment.test: |-
+                    {
+                      "name": "test",
+                      "repository": "${bitbucket_repository.monorepo.id}",
+                      "stage": "Test"
+                    }
+                bitbucket_repository.monorepo: |-
+                    {
+                      "name": "illusions",
+                      "owner": "gob",
+                      "pipelines_enabled": true
+                    }
+        argumentDocs:
+            deployment: '- (Required) The deployment ID you want to assign this variable to.'
+            key: '- (Required) The unique name of the variable.'
+            secured: '- (Optional)  If true, this variable will be treated as secured. The value will never be exposed in the logs or the REST API.'
+            uuid: '- (Computed) The UUID identifying the variable.'
+            value: '- (Required) The value of the variable.'
+        importStatements: []
+    bitbucket_forked_repository:
+        subCategory: ""
+        description: Provides a Bitbucket Repository
+        name: bitbucket_forked_repository
+        title: bitbucket_forked_repository
+        examples:
+            - name: infrastructure
+              manifest: |-
+                {
+                  "name": "terraform-code",
+                  "owner": "myteam"
+                }
+            - name: infrastructure
+              manifest: |-
+                {
+                  "name": "TerraformCode",
+                  "owner": "myteam",
+                  "parent": {
+                    "owner": "${bitbucket_repository.test.owner}",
+                    "slug": "${bitbucket_repository.test.slug}"
+                  },
+                  "slug": "terraform-code"
+                }
+        argumentDocs:
+            avatar: '- (Optional) An avatar link to a resource related to this object. See Avatar Below.'
+            clone_https: '- The HTTPS clone URL.'
+            clone_ssh: '- The SSH clone URL.'
+            description: '- (Optional) What the description of the repo is.'
+            fork_policy: |-
+                - (Optional) What the fork policy should be. Defaults to
+                allow_forks. Valid values are allow_forks, no_public_forks, no_forks.
+            has_issues: '- (Optional) If this should have issues turned on or not.'
+            has_wiki: '- (Optional) If this should have wiki turned on or not.'
+            href: '- (Optional) href of the avatar.'
+            is_private: |-
+                - (Optional) If this should be private or not. Defaults to true. Note that if
+                the parent repo has no_public_forks as its fork policy, the resource may
+                fail to be created.
+            language: '- (Optional) What the language of this repository should be.'
+            link: '- (Optional) A set of links to a resource related to this object. See Link Below.'
+            name: '- (Required) The name of the repository.'
+            owner: |-
+                - (Required) The owner of this repository. Can be you or any team you
+                have write access to.
+            parent: '- The repository to fork from. See Parent below.'
+            pipelines_enabled: '- (Optional) Turn on to enable pipelines support.'
+            project_key: |-
+                - (Optional) If you want to have this repo associated with a
+                project.
+            scm: '- The SCM of the resource. Either hg or git.'
+            slug: '- (Optional) The slug of the repository.'
+            uuid: '- The uuid of the repository resource.'
+            website: '- (Optional) URL of website associated with this repository.'
+        importStatements: []
+    bitbucket_group:
+        subCategory: ""
+        description: Provides a Bitbucket Group
+        name: bitbucket_group
+        title: bitbucket_group
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "auto_add": true,
+                  "name": "example",
+                  "permission": "read",
+                  "workspace": "${data.bitbucket_workspace.test.id}"
+                }
+              references:
+                workspace: data.bitbucket_workspace.test.id
+        argumentDocs:
+            auto_add: '- (Optional) Whether to automatically add users the group'
+            email_forwarding_disabled: '- Whether to disable email forwarding for group.'
+            name: '- (Required) The name of the group.'
+            permission: '- (Optional) One of read, write, and admin.'
+            slug: '- The groups slug.'
+            workspace: '- (Required) The workspace of this repository.'
+        importStatements: []
+    bitbucket_group_membership:
+        subCategory: ""
+        description: Provides support for setting Bitbucket Group Membership
+        name: bitbucket_group_membership
+        title: bitbucket_group_membership
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "group_slug": "${bitbucket_group.test.slug}",
+                  "uuid": "${data.bitbucket_current_user.test.id}",
+                  "workspace": "${bitbucket_group.test.workspace}"
+                }
+              references:
+                group_slug: bitbucket_group.test.slug
+                uuid: data.bitbucket_current_user.test.id
+                workspace: bitbucket_group.test.workspace
+              dependencies:
+                bitbucket_group.test: |-
+                    {
+                      "name": "example",
+                      "workspace": "${data.bitbucket_workspace.test.id}"
+                    }
+        argumentDocs:
+            group_slug: '- (Required) The slug of the group.'
+            uuid: '- (Required) The member UUID to add to the group.'
+            workspace: '- (Required) The workspace of this repository.'
+        importStatements: []
+    bitbucket_hook:
+        subCategory: ""
+        description: Provides a Bitbucket Webhook
+        name: bitbucket_hook
+        title: bitbucket_hook
+        examples:
+            - name: deploy_on_push
+              manifest: |-
+                {
+                  "description": "Deploy the code via my webhook",
+                  "events": [
+                    "repo:push"
+                  ],
+                  "owner": "myteam",
+                  "repository": "terraform-code",
+                  "url": "https://mywebhookservice.mycompany.com/deploy-on-push"
+                }
+        argumentDocs:
+            active: '- (Optional) Whether the webhook configuration is active or not (Default: true).'
+            description: '- (Required) The name / description to show in the UI.'
+            events: '- (Required) The events this webhook is subscribed to. Valid values can be found at Bitbucket Event Payloads Docs.'
+            history_enabled: '- Whether a webhook history is enabled.'
+            owner: |-
+                - (Required) The owner of this repository. Can be you or any team you
+                have write access to.
+            repository: '- (Required) The name of the repository.'
+            secret: '- (Optional) A Webhook secret value. Passing a null or empty secret or not passing a secret will leave the webhook''s secret unset. This value is not returned on read and cannot resolve diffs or be imported as its not returned back from bitbucket API.'
+            secret_set: '- Whether a webhook secret is set.'
+            skip_cert_verification: '- (Optional) Whether to skip certificate verification or not (Default: true).'
+            url: '- (Required) Where to POST to.'
+            uuid: '- The UUID of the workspace webhook.'
+        importStatements: []
+    bitbucket_pipeline_schedule:
+        subCategory: ""
+        description: Provides a Bitbucket Pipeline Schedule
+        name: bitbucket_pipeline_schedule
+        title: bitbucket_pipeline_schedule
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "cron_pattern": "0 30 * * * ? *",
+                  "enabled": true,
+                  "repository": "${bitbucket_repository.test.name}",
+                  "target": [
+                    {
+                      "ref_name": "master",
+                      "ref_type": "branch",
+                      "selector": [
+                        {
+                          "pattern": "staging"
+                        }
+                      ]
+                    }
+                  ],
+                  "workspace": "example"
+                }
+              references:
+                repository: bitbucket_repository.test.name
+        argumentDocs:
+            cron_pattern: '- (Required) The cron expression that the schedule applies.'
+            enabled: '- (Required) Whether the schedule is enabled.'
+            pattern: '- (Required) The name of the matching pipeline definition.'
+            ref_name: '- (Required) The name of the reference.'
+            ref_type: '- (Required) The type of reference. Valid values are branch and tag.'
+            repository: '- (Required) The Repository to create schedule in.'
+            selector: '- (Required) Selector spec. See Selector below.'
+            target: '- (Required) Schedule Target definition. See Target below.'
+            type: '- (Optional) Selector type. Default value is branches.'
+            uuid: '- The UUID identifying the schedule.'
+            workspace: '- (Required) The Workspace where the repository resides.'
+        importStatements: []
+    bitbucket_pipeline_ssh_key:
+        subCategory: ""
+        description: Provides a Bitbucket Pipeline Ssh Key
+        name: bitbucket_pipeline_ssh_key
+        title: bitbucket_pipeline_ssh_key
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "private_key": "test-key",
+                  "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKqP3Cr632C2dNhhgKVcon4ldUSAeKiku2yP9O9/bDtY",
+                  "repository": "example",
+                  "workspace": "example"
+                }
+        argumentDocs:
+            private_key: '- (Required) The SSH private key value in OpenSSH format.'
+            public_key: '- (Required) The SSH public key value in OpenSSH format.'
+            repository: '- (Required) The Repository to create ssh key in.'
+            workspace: '- (Required) The Workspace where the repository resides.'
+        importStatements: []
+    bitbucket_pipeline_ssh_known_host:
+        subCategory: ""
+        description: Provides a Bitbucket Pipeline Ssh Known Host
+        name: bitbucket_pipeline_ssh_known_host
+        title: bitbucket_pipeline_ssh_known_host
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "hostname": "[example.com]:22",
+                  "public_key": [
+                    {
+                      "key": "AAAAC3NzaC1lZDI1NTE5AAAAIKqP3Cr632C2dNhhgKVcon4ldUSAeKiku2yP9O9/bDtY",
+                      "key_type": "ssh-ed25519"
+                    }
+                  ],
+                  "repository": "${bitbucket_repository.test.name}",
+                  "workspace": "example"
+                }
+              references:
+                repository: bitbucket_repository.test.name
+        argumentDocs:
+            hostname: '- (Required) The hostname of the known host.'
+            key: '- The plain public key.'
+            key_type: '- The type of the public key. Valid values are ssh-ed25519, ecdsa-sha2-nistp256, ssh-rsa, and ssh-dss.'
+            public_key: '- (Required) The Public key config for the known host.'
+            public_key.0.md5_fingerprint: '- The MD5 fingerprint of the public key.'
+            public_key.0.sha256_fingerprint: '- The SHA-256 fingerprint of the public key.'
+            repository: '- (Required) The Repository to create config for the known host in.'
+            uuid: '- The UUID identifying the known host.'
+            workspace: '- (Required) The Workspace where the repository resides.'
+        importStatements: []
+    bitbucket_project:
+        subCategory: ""
+        description: Create and manage a Bitbucket project
+        name: bitbucket_project
+        title: bitbucket_project
+        examples:
+            - name: devops
+              manifest: |-
+                {
+                  "key": "DEVOPS",
+                  "name": "devops",
+                  "owner": "my-team"
+                }
+        argumentDocs:
+            avatar: '- (Optional) An avatar link to a resource related to this object. See Avatar Below.'
+            description: '- (Optional) The description of the project'
+            has_publicly_visible_repos: '- Indicates whether the project contains publicly visible repositories. Note that private projects cannot contain public repositories.'
+            href: '- (Optional) href of the avatar.'
+            is_private: '- (Optional) If you want to keep the project private - defaults to true'
+            key: '- (Required) The key used for this project'
+            link: '- (Optional) A set of links to a resource related to this object. See Link Below.'
+            name: '- (Required) The name of the project'
+            owner: '- (Required) The owner of this project. Can be you or any team you have write access to.'
+            uuid: '- The project''s immutable id.'
+        importStatements: []
+    bitbucket_project_branching_model:
+        subCategory: ""
+        description: Provides a Bitbucket Project Branching Model
+        name: bitbucket_project_branching_model
+        title: bitbucket_project_branching_model
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "branch_type": [
+                    {
+                      "enabled": true,
+                      "kind": "feature",
+                      "prefix": "example/"
+                    },
+                    {
+                      "enabled": true,
+                      "kind": "hotfix",
+                      "prefix": "hotfix/"
+                    },
+                    {
+                      "enabled": true,
+                      "kind": "release",
+                      "prefix": "release/"
+                    },
+                    {
+                      "enabled": true,
+                      "kind": "bugfix",
+                      "prefix": "bugfix/"
+                    }
+                  ],
+                  "development": [
+                    {
+                      "use_mainbranch": true
+                    }
+                  ],
+                  "project": "${bitbucket_project.example.key}",
+                  "workspace": "example"
+                }
+              references:
+                project: bitbucket_project.example.key
+              dependencies:
+                bitbucket_project.example: |-
+                    {
+                      "key": "FFFFF",
+                      "name": "example",
+                      "owner": "example"
+                    }
+        argumentDocs:
+            branch_does_not_exist: '- (Optional) Optional and only returned for a project''s branching model. Indicates if the indicated branch exists on the project (false) or not (true). This is useful for determining a fallback to the mainbranch when a project is inheriting its project''s branching model.'
+            branch_type: '- (Required) A set of branch type to define feature, bugfix, release, hotfix prefixes. See Branch Type below.'
+            development: '- (Optional) The development branch can be configured to a specific branch or to track the main branch. When set to a specific branch it must currently exist. Only the passed properties will be updated. The properties not passed will be left unchanged. A request without a development property will leave the development branch unchanged. See Development below.'
+            enabled: '- (Optional) Indicates if branch is enabled or not.'
+            kind: '- (Required) The kind of the branch type. Valid values are feature, bugfix, release, hotfix.'
+            name: '- (Optional) The configured branch. It must be null when use_mainbranch is true. Otherwise it must be a non-empty value. It is possible for the configured branch to not exist (e.g. it was deleted after the settings are set).'
+            prefix: '- (Optional) The prefix for this branch type. A branch with this prefix will be classified as per kind. The prefix of an enabled branch type must be a valid branch prefix. Additionally, it cannot be blank, empty or null. The prefix for a disabled branch type can be empty or invalid.'
+            production: '- (Optional) The production branch can be a specific branch, the main branch or disabled. When set to a specific branch it must currently exist. The enabled property can be used to enable (true) or disable (false) it. Only the passed properties will be updated. The properties not passed will be left unchanged. A request without a production property will leave the production branch unchanged. See Production below.'
+            project: '- (Required) The key of the project.'
+            use_mainbranch: '- (Optional) Indicates if the setting points at an explicit branch (false) or tracks the main branch (true). When true the name must be null or not provided. When false the name must contain a non-empty branch name.'
+            workspace: |-
+                - (Required) The workspace of this project. Can be you or any team you
+                have write access to.
+        importStatements: []
+    bitbucket_project_default_reviewers:
+        subCategory: ""
+        description: Provides support for setting up project default reviews for bitbucket.
+        name: bitbucket_project_default_reviewers
+        title: bitbucket_project_default_reviewers
+        examples:
+            - name: infrastructure
+              manifest: |-
+                {
+                  "project": "TERRAFORM",
+                  "reviewers": [
+                    "${data.bitbucket_user.reviewer.uuid}"
+                  ],
+                  "workspace": "myteam"
+                }
+        argumentDocs:
+            project: '- (Required) The key of the project.'
+            reviewers: '- (Required) A list of reviewers to use.'
+            workspace: |-
+                - (Required) The workspace of this project. Can be you or any team you
+                have write access to.
+        importStatements: []
+    bitbucket_project_group_permission:
+        subCategory: ""
+        description: Provides a Bitbucket Repository Group Permission Resource
+        name: bitbucket_project_group_permission
+        title: bitbucket_project_group_permission
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "group_slug": "${bitbucket_group.example.slug}",
+                  "permission": "read",
+                  "project_key": "${bitbucket_project.example.key}",
+                  "workspace": "example"
+                }
+              references:
+                group_slug: bitbucket_group.example.slug
+                project_key: bitbucket_project.example.key
+        argumentDocs:
+            group_slug: '- (Required) Slug of the requested group.'
+            permission: '- (Required) Permissions can be one of read, write, create-repo, and admin.'
+            project_key: '- (Required) The project key.'
+            workspace: '- (Required) The workspace id.'
+        importStatements: []
+    bitbucket_project_user_permission:
+        subCategory: ""
+        description: Provides a Bitbucket Repository User Permission Resource
+        name: bitbucket_project_user_permission
+        title: bitbucket_project_user_permission
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "permission": "read",
+                  "project_key": "${bitbucket_project.example.key}",
+                  "user_id": "user-id",
+                  "workspace": "example"
+                }
+              references:
+                project_key: bitbucket_project.example.key
+        argumentDocs:
+            permission: '- (Required) Permissions can be one of read, write, create-repo, and admin.'
+            project_key: '- (Required) The project key.'
+            user_id: '- (Required) The UUID of the user.'
+            workspace: '- (Required) The workspace id.'
+        importStatements: []
+    bitbucket_repository:
+        subCategory: ""
+        description: Provides a Bitbucket Repository
+        name: bitbucket_repository
+        title: bitbucket_repository
+        examples:
+            - name: infrastructure
+              manifest: |-
+                {
+                  "name": "terraform-code",
+                  "owner": "myteam"
+                }
+            - name: infrastructure
+              manifest: |-
+                {
+                  "name": "TerraformCode",
+                  "owner": "myteam",
+                  "slug": "terraform-code"
+                }
+        argumentDocs:
+            avatar: '- (Optional) An avatar link to a resource related to this object. See Avatar Below.'
+            clone_https: '- The HTTPS clone URL.'
+            clone_ssh: '- The SSH clone URL.'
+            description: '- (Optional) What the description of the repo is.'
+            fork_policy: |-
+                - (Optional) What the fork policy should be. Defaults to
+                allow_forks. Valid values are allow_forks, no_public_forks, no_forks.
+            has_issues: '- (Optional) If this should have issues turned on or not.'
+            has_wiki: '- (Optional) If this should have wiki turned on or not.'
+            href: '- (Optional) href of the avatar.'
+            inherit_branching_model: '- (Optional) Whether to inherit branching model from project.'
+            inherit_default_merge_strategy: '- (Optional) Whether to inherit default merge strategy from project.'
+            is_private: '- (Optional) If this should be private or not. Defaults to true.'
+            language: '- (Optional) What the language of this repository should be.'
+            link: '- (Optional) A set of links to a resource related to this object. See Link Below.'
+            name: '- (Required) The name of the repository.'
+            owner: |-
+                - (Required) The owner of this repository. Can be you or any team you
+                have write access to.
+            pipelines_enabled: '- (Optional) Turn on to enable pipelines support.'
+            project_key: |-
+                - (Optional) If you want to have this repo associated with a
+                project.
+            scm: |-
+                - (Optional) What SCM you want to use. Valid options are hg or git.
+                Defaults to git.
+            slug: '- (Optional) The slug of the repository.'
+            uuid: '- the uuid of the repository resource.'
+            website: '- (Optional) URL of website associated with this repository.'
+        importStatements: []
+    bitbucket_repository_group_permission:
+        subCategory: ""
+        description: Provides a Bitbucket Repository Group Permission Resource
+        name: bitbucket_repository_group_permission
+        title: bitbucket_repository_group_permission
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "group_slug": "${bitbucket_group.example.slug}",
+                  "permission": "read",
+                  "repo_slug": "${bitbucket_repository.example.name}",
+                  "workspace": "example"
+                }
+              references:
+                group_slug: bitbucket_group.example.slug
+                repo_slug: bitbucket_repository.example.name
+        argumentDocs:
+            group_slug: '- (Required) Slug of the requested group.'
+            permission: '- (Required) Permissions can be one of read, write, and admin.'
+            repo_slug: '- (Required) The repository slug.'
+            workspace: '- (Required) The workspace id.'
+        importStatements: []
+    bitbucket_repository_user_permission:
+        subCategory: ""
+        description: Provides a Bitbucket Repository User Permission Resource
+        name: bitbucket_repository_user_permission
+        title: bitbucket_repository_user_permission
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "permission": "read",
+                  "repo_slug": "${bitbucket_repository.example.name}",
+                  "user_id": "user-id",
+                  "workspace": "example"
+                }
+              references:
+                repo_slug: bitbucket_repository.example.name
+        argumentDocs:
+            permission: '- (Required) Permissions can be one of read, write, none, and admin.'
+            repo_slug: '- (Required) The repository slug.'
+            user_id: '- (Required) The UUID of the user.'
+            workspace: '- (Required) The workspace id.'
+        importStatements: []
+    bitbucket_repository_variable:
+        subCategory: ""
+        description: Manage your pipelines repository variables and configuration
+        name: bitbucket_repository_variable
+        title: bitbucket_repository_variable
+        examples:
+            - name: debug
+              manifest: |-
+                {
+                  "key": "DEBUG",
+                  "repository": "${bitbucket_repository.monorepo.id}",
+                  "secured": false,
+                  "value": "true"
+                }
+              references:
+                repository: bitbucket_repository.monorepo.id
+              dependencies:
+                bitbucket_repository.monorepo: |-
+                    {
+                      "name": "illusions",
+                      "owner": "gob",
+                      "pipelines_enabled": true
+                    }
+        argumentDocs:
+            key: '- (Required) The key of the key value pair'
+            repository: '- (Required) The repository ID you want to put this variable onto. (of form workspace-id/repository-id)'
+            secured: '- (Optional) If you want to make this viewable in the UI.'
+            uuid: '- (Computed) The UUID identifying the variable.'
+            value: '- (Required) The value of the key. This will not be returned if secured is set to true from API and wont be drift detected by provider.'
+            workspace: '- (Computed) The workspace the variable is created in.'
+        importStatements: []
+    bitbucket_ssh_key:
+        subCategory: ""
+        description: Provides a Bitbucket SSH Key
+        name: bitbucket_ssh_key
+        title: bitbucket_ssh_key
+        examples:
+            - name: test
+              manifest: |-
+                {
+                  "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKqP3Cr632C2dNhhgKVcon4ldUSAeKiku2yP9O9/bDtY",
+                  "label": "test-key",
+                  "user": "${data.bitbucket_current_user.test.uuid}"
+                }
+              references:
+                user: data.bitbucket_current_user.test.uuid
+        argumentDocs:
+            comment: '- The comment parsed from the SSH key (if present)'
+            key: '- (Required) The SSH public key value in OpenSSH format.'
+            label: '- (Optional) The user-defined label for the SSH key'
+            user: '- (Required) This can either be the UUID of the account, surrounded by curly-braces, for example: {account UUID}, OR an Atlassian Account ID.'
+            uuid: '- The SSH key''s UUID value.'
+        importStatements: []
+    bitbucket_workspace_hook:
+        subCategory: ""
+        description: Provides a Bitbucket Workspace Webhook
+        name: bitbucket_workspace_hook
+        title: bitbucket_workspace_hook
+        examples:
+            - name: deploy_on_push
+              manifest: |-
+                {
+                  "description": "Deploy the code via my webhook",
+                  "events": [
+                    "repo:push"
+                  ],
+                  "url": "https://mywebhookservice.mycompany.com/deploy-on-push",
+                  "workspace": "myteam"
+                }
+        argumentDocs:
+            active: '- (Optional) Whether the webhook configuration is active or not (Default: true).'
+            description: '- (Required) The name / description to show in the UI.'
+            events: '- (Required) The events this webhook is subscribed to. Valid values can be found at Bitbucket Webhook Docs.'
+            history_enabled: '- Whether a webhook history is enabled.'
+            secret: '- (Optional) A Webhook secret value. Passing a null or empty secret or not passing a secret will leave the webhook''s secret unset. This value is not returned on read and cannot resolve diffs or be imported as its not returned back from bitbucket API.'
+            secret_set: '- Whether a webhook secret is set.'
+            skip_cert_verification: '- (Optional) Whether to skip certificate verification or not (Default: true).'
+            url: '- (Required) Where to POST to.'
+            uuid: '- The UUID of the workspace webhook.'
+            workspace: |-
+                - (Required) The workspace of this repository. Can be you or any team you
+                have write access to.
+        importStatements: []
+    bitbucket_workspace_variable:
+        subCategory: ""
+        description: Manage variables for your pipelines workspace environments
+        name: bitbucket_workspace_variable
+        title: bitbucket_workspace_variable
+        examples:
+            - name: country
+              manifest: |-
+                {
+                  "key": "COUNTRY",
+                  "secured": false,
+                  "value": "Kenya",
+                  "workspace": "${bitbucket_workspace.test.id}"
+                }
+              references:
+                workspace: bitbucket_workspace.test.id
+        argumentDocs:
+            key: '- (Required) The unique name of the variable.'
+            secured: '- (Optional)  If true, this variable will be treated as secured. The value will never be exposed in the logs or the REST API.'
+            uuid: '- (Computed) The UUID identifying the variable.'
+            value: '- (Required) The value of the variable.'
+            workspace: '- (Required) The workspace ID you want to assign this variable to.'
         importStatements: []

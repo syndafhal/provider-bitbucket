@@ -1,0 +1,18 @@
+apiVersion: hook.upbound.io/v1alpha1
+kind: Hook
+metadata:
+  annotations:
+    meta.upbound.io/example-id: hook/v1alpha1/hook
+  labels:
+    testing.upbound.io/example-name: deploy_on_push
+  name: deploy-on-push
+spec:
+  forProvider:
+    description: Deploy the code via my webhook
+    events:
+    - repo:push
+    owner: myteam
+    repositorySelector:
+      matchLabels:
+        testing.upbound.io/example-name: example
+    url: https://mywebhookservice.mycompany.com/deploy-on-push
