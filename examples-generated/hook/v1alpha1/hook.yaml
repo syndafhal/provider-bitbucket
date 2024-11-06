@@ -14,3 +14,7 @@ spec:
     - repo:push
     owner: crossplane
     url: https://bitbucket.org/crossplane/aichor-demo
+    secretSecretRef:
+      name: deploy-on-push-secret
+      key: token
+      namespace: crossplane-system

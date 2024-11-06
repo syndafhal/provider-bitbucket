@@ -14,7 +14,7 @@ var ExternalNameConfigs = map[string]config.ExternalName{
 	// Name is a parameter and it is also used to import the resource.
 	"bitbucket_repository": config.NameAsIdentifier,
 	// For the Bitbucket hook, use the combination of owner and repository name along with the hook description for uniqueness.
-    "bitbucket_hook": config.TemplatedStringAsIdentifier("hook", "{{ .parameters.owner }}:{{ .parameters.repository }}:{{ .external_name }}"),
+    "bitbucket_hook": config.TemplatedStringAsIdentifier("", "{{ .parameters.owner }}:{{ .parameters.repository }}:{{ .parameters.url }}"),
 }
 
 // ExternalNameConfigurations applies all external name configs listed in the
