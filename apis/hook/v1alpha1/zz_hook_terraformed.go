@@ -21,14 +21,7 @@ func (mg *Hook) GetTerraformResourceType() string {
 
 // GetConnectionDetailsMapping for this Hook
 func (tr *Hook) GetConnectionDetailsMapping() map[string]string {
-	return map[string]string{
-		"owner":"spec.forProvider.owner",
-		"repository":"spec.forProvider.repository",
-		"url":"spec.forProvider.url",
-		"description":"spec.forProvider.description",
-		"events":"spec.forProvider.events",
-		"secret": "secretSecretRef",
-	}
+	return map[string]string{"secret": "secretSecretRef"}
 }
 
 // GetObservation of this Hook
