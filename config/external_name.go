@@ -9,12 +9,10 @@ import "github.com/crossplane/upjet/pkg/config"
 // ExternalNameConfigs contains all external name configurations for this
 // provider.
 var ExternalNameConfigs = map[string]config.ExternalName{
-	// Import requires using a randomly generated ID from provider: nl-2e21sda
-	"null_resource": config.IdentifierFromProvider,
 	// Name is a parameter and it is also used to import the resource.
 	"bitbucket_repository": config.NameAsIdentifier,
 	// For the Bitbucket hook, use the combination of owner and repository name along with the hook description for uniqueness.
-    "bitbucket_hook": config.TemplatedStringAsIdentifier("", "{{ .parameters.owner }}:{{ .parameters.repository }}:{{ .parameters.url }}"),
+    "bitbucket_hook": config.IdentifierFromProvider,
 }
 
 // ExternalNameConfigurations applies all external name configs listed in the
