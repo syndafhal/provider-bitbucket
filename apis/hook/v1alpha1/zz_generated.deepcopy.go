@@ -69,6 +69,16 @@ func (in *HookInitParameters) DeepCopyInto(out *HookInitParameters) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.Owner != nil {
+		in, out := &in.Owner, &out.Owner
+		*out = new(string)
+		**out = **in
+	}
+	if in.Repository != nil {
+		in, out := &in.Repository, &out.Repository
+		*out = new(string)
+		**out = **in
+	}
 	if in.SecretSecretRef != nil {
 		in, out := &in.SecretSecretRef, &out.SecretSecretRef
 		*out = new(v1.SecretKeySelector)
@@ -242,16 +252,6 @@ func (in *HookParameters) DeepCopyInto(out *HookParameters) {
 		in, out := &in.Repository, &out.Repository
 		*out = new(string)
 		**out = **in
-	}
-	if in.RepositoryRef != nil {
-		in, out := &in.RepositoryRef, &out.RepositoryRef
-		*out = new(v1.Reference)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.RepositorySelector != nil {
-		in, out := &in.RepositorySelector, &out.RepositorySelector
-		*out = new(v1.Selector)
-		(*in).DeepCopyInto(*out)
 	}
 	if in.SecretSecretRef != nil {
 		in, out := &in.SecretSecretRef, &out.SecretSecretRef

@@ -1,0 +1,14 @@
+apiVersion: hook.bitbucket.upbound.io/v1alpha1
+kind: Hook
+metadata:
+  name: deploy
+spec:
+  forProvider:
+    description: Deploy the code via my webhook
+    events:
+    - repo:push
+    owner: crossplane
+    repository: aichor-demo
+    url: https://bitbucket.org/crossplane/aichor-demo
+  providerConfigRef:
+    name: default

@@ -4,18 +4,18 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: hooks.hook.upbound.io
+  name: repositories.repository.bitbucket.upbound.io
 spec:
-  group: hook.upbound.io
+  group: repository.bitbucket.upbound.io
   names:
     categories:
     - crossplane
     - managed
     - bitbucket
-    kind: Hook
-    listKind: HookList
-    plural: hooks
-    singular: hook
+    kind: Repository
+    listKind: RepositoryList
+    plural: repositories
+    singular: repository
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -34,7 +34,8 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Hook is the Schema for the Hooks API. Provides a Bitbucket Webhook
+        description: Repository is the Schema for the Repositorys API. Provides a
+          Bitbucket Repository
         properties:
           apiVersion:
             description: |-
@@ -54,7 +55,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: HookSpec defines the desired state of Hook
+            description: RepositorySpec defines the desired state of Repository
             properties:
               deletionPolicy:
                 default: Delete
@@ -72,136 +73,73 @@ spec:
                 type: string
               forProvider:
                 properties:
-                  active:
-                    description: 'Whether the webhook configuration is active or not
-                      (Default: true).'
-                    type: boolean
                   description:
-                    description: The name / description to show in the UI.
+                    description: What the description of the repo is.
                     type: string
-                  events:
-                    description: The events this webhook is subscribed to. Valid values
-                      can be found at Bitbucket Event Payloads Docs.
-                    items:
-                      type: string
-                    type: array
-                    x-kubernetes-list-type: set
-                  historyEnabled:
-                    description: Whether a webhook history is enabled.
+                  forkPolicy:
+                    description: |-
+                      What the fork policy should be. Defaults to
+                      allow_forks. Valid values are allow_forks, no_public_forks, no_forks.
+                    type: string
+                  hasIssues:
+                    description: If this should have issues turned on or not.
                     type: boolean
+                  hasWiki:
+                    description: If this should have wiki turned on or not.
+                    type: boolean
+                  inheritBranchingModel:
+                    description: Whether to inherit branching model from project.
+                    type: boolean
+                  inheritDefaultMergeStrategy:
+                    description: Whether to inherit default merge strategy from project.
+                    type: boolean
+                  isPrivate:
+                    description: If this should be private or not. Defaults to true.
+                    type: boolean
+                  language:
+                    description: What the language of this repository should be.
+                    type: string
+                  link:
+                    description: A set of links to a resource related to this object.
+                      See Link Below.
+                    items:
+                      properties:
+                        avatar:
+                          description: An avatar link to a resource related to this
+                            object. See Avatar Below.
+                          items:
+                            properties:
+                              href:
+                                description: href of the avatar.
+                                type: string
+                            type: object
+                          type: array
+                      type: object
+                    type: array
                   owner:
                     description: |-
                       The owner of this repository. Can be you or any team you
                       have write access to.
                     type: string
-                  repository:
-                    description: The name of the repository.
-                    type: string
-                  repositoryRef:
-                    description: Reference to a Repository in repository to populate
-                      repository.
-                    properties:
-                      name:
-                        description: Name of the referenced object.
-                        type: string
-                      policy:
-                        description: Policies for referencing.
-                        properties:
-                          resolution:
-                            default: Required
-                            description: |-
-                              Resolution specifies whether resolution of this reference is required.
-                              The default is 'Required', which means the reconcile will fail if the
-                              reference cannot be resolved. 'Optional' means this reference will be
-                              a no-op if it cannot be resolved.
-                            enum:
-                            - Required
-                            - Optional
-                            type: string
-                          resolve:
-                            description: |-
-                              Resolve specifies when this reference should be resolved. The default
-                              is 'IfNotPresent', which will attempt to resolve the reference only when
-                              the corresponding field is not present. Use 'Always' to resolve the
-                              reference on every reconcile.
-                            enum:
-                            - Always
-                            - IfNotPresent
-                            type: string
-                        type: object
-                    required:
-                    - name
-                    type: object
-                  repositorySelector:
-                    description: Selector for a Repository in repository to populate
-                      repository.
-                    properties:
-                      matchControllerRef:
-                        description: |-
-                          MatchControllerRef ensures an object with the same controller reference
-                          as the selecting object is selected.
-                        type: boolean
-                      matchLabels:
-                        additionalProperties:
-                          type: string
-                        description: MatchLabels ensures an object with matching labels
-                          is selected.
-                        type: object
-                      policy:
-                        description: Policies for selection.
-                        properties:
-                          resolution:
-                            default: Required
-                            description: |-
-                              Resolution specifies whether resolution of this reference is required.
-                              The default is 'Required', which means the reconcile will fail if the
-                              reference cannot be resolved. 'Optional' means this reference will be
-                              a no-op if it cannot be resolved.
-                            enum:
-                            - Required
-                            - Optional
-                            type: string
-                          resolve:
-                            description: |-
-                              Resolve specifies when this reference should be resolved. The default
-                              is 'IfNotPresent', which will attempt to resolve the reference only when
-                              the corresponding field is not present. Use 'Always' to resolve the
-                              reference on every reconcile.
-                            enum:
-                            - Always
-                            - IfNotPresent
-                            type: string
-                        type: object
-                    type: object
-                  secretSecretRef:
-                    description: A Webhook secret value. Passing a null or empty secret
-                      or not passing a secret will leave the webhook's secret unset.
-                      This value is not returned on read and cannot resolve diffs
-                      or be imported as its not returned back from bitbucket API.
-                    properties:
-                      key:
-                        description: The key to select.
-                        type: string
-                      name:
-                        description: Name of the secret.
-                        type: string
-                      namespace:
-                        description: Namespace of the secret.
-                        type: string
-                    required:
-                    - key
-                    - name
-                    - namespace
-                    type: object
-                  skipCertVerification:
-                    description: 'Whether to skip certificate verification or not
-                      (Default: true).'
+                  pipelinesEnabled:
+                    description: Turn on to enable pipelines support.
                     type: boolean
-                  url:
-                    description: Where to POST to.
+                  projectKey:
+                    description: |-
+                      If you want to have this repo associated with a
+                      project.
                     type: string
-                required:
-                - owner
+                  scm:
+                    description: |-
+                      What SCM you want to use. Valid options are hg or git.
+                      Defaults to git.
+                    type: string
+                  slug:
+                    description: The slug of the repository.
+                    type: string
+                  website:
+                    description: URL of website associated with this repository.
+                    type: string
                 type: object
               initProvider:
                 description: |-
@@ -216,49 +154,72 @@ spec:
                   for example because of an external controller is managing them, like an
                   autoscaler.
                 properties:
-                  active:
-                    description: 'Whether the webhook configuration is active or not
-                      (Default: true).'
-                    type: boolean
                   description:
-                    description: The name / description to show in the UI.
+                    description: What the description of the repo is.
                     type: string
-                  events:
-                    description: The events this webhook is subscribed to. Valid values
-                      can be found at Bitbucket Event Payloads Docs.
+                  forkPolicy:
+                    description: |-
+                      What the fork policy should be. Defaults to
+                      allow_forks. Valid values are allow_forks, no_public_forks, no_forks.
+                    type: string
+                  hasIssues:
+                    description: If this should have issues turned on or not.
+                    type: boolean
+                  hasWiki:
+                    description: If this should have wiki turned on or not.
+                    type: boolean
+                  inheritBranchingModel:
+                    description: Whether to inherit branching model from project.
+                    type: boolean
+                  inheritDefaultMergeStrategy:
+                    description: Whether to inherit default merge strategy from project.
+                    type: boolean
+                  isPrivate:
+                    description: If this should be private or not. Defaults to true.
+                    type: boolean
+                  language:
+                    description: What the language of this repository should be.
+                    type: string
+                  link:
+                    description: A set of links to a resource related to this object.
+                      See Link Below.
                     items:
-                      type: string
+                      properties:
+                        avatar:
+                          description: An avatar link to a resource related to this
+                            object. See Avatar Below.
+                          items:
+                            properties:
+                              href:
+                                description: href of the avatar.
+                                type: string
+                            type: object
+                          type: array
+                      type: object
                     type: array
-                    x-kubernetes-list-type: set
-                  historyEnabled:
-                    description: Whether a webhook history is enabled.
+                  owner:
+                    description: |-
+                      The owner of this repository. Can be you or any team you
+                      have write access to.
+                    type: string
+                  pipelinesEnabled:
+                    description: Turn on to enable pipelines support.
                     type: boolean
-                  secretSecretRef:
-                    description: A Webhook secret value. Passing a null or empty secret
-                      or not passing a secret will leave the webhook's secret unset.
-                      This value is not returned on read and cannot resolve diffs
-                      or be imported as its not returned back from bitbucket API.
-                    properties:
-                      key:
-                        description: The key to select.
-                        type: string
-                      name:
-                        description: Name of the secret.
-                        type: string
-                      namespace:
-                        description: Namespace of the secret.
-                        type: string
-                    required:
-                    - key
-                    - name
-                    - namespace
-                    type: object
-                  skipCertVerification:
-                    description: 'Whether to skip certificate verification or not
-                      (Default: true).'
-                    type: boolean
-                  url:
-                    description: Where to POST to.
+                  projectKey:
+                    description: |-
+                      If you want to have this repo associated with a
+                      project.
+                    type: string
+                  scm:
+                    description: |-
+                      What SCM you want to use. Valid options are hg or git.
+                      Defaults to git.
+                    type: string
+                  slug:
+                    description: The slug of the repository.
+                    type: string
+                  website:
+                    description: URL of website associated with this repository.
                     type: string
                 type: object
               managementPolicies:
@@ -429,62 +390,92 @@ spec:
             - forProvider
             type: object
             x-kubernetes-validations:
-            - message: spec.forProvider.description is a required parameter
+            - message: spec.forProvider.owner is a required parameter
               rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
-                || ''Update'' in self.managementPolicies) || has(self.forProvider.description)
-                || (has(self.initProvider) && has(self.initProvider.description))'
-            - message: spec.forProvider.events is a required parameter
-              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
-                || ''Update'' in self.managementPolicies) || has(self.forProvider.events)
-                || (has(self.initProvider) && has(self.initProvider.events))'
-            - message: spec.forProvider.url is a required parameter
-              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
-                || ''Update'' in self.managementPolicies) || has(self.forProvider.url)
-                || (has(self.initProvider) && has(self.initProvider.url))'
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.owner)
+                || (has(self.initProvider) && has(self.initProvider.owner))'
           status:
-            description: HookStatus defines the observed state of Hook.
+            description: RepositoryStatus defines the observed state of Repository.
             properties:
               atProvider:
                 properties:
-                  active:
-                    description: 'Whether the webhook configuration is active or not
-                      (Default: true).'
-                    type: boolean
-                  description:
-                    description: The name / description to show in the UI.
+                  cloneHttps:
+                    description: The HTTPS clone URL.
                     type: string
-                  events:
-                    description: The events this webhook is subscribed to. Valid values
-                      can be found at Bitbucket Event Payloads Docs.
-                    items:
-                      type: string
-                    type: array
-                    x-kubernetes-list-type: set
-                  historyEnabled:
-                    description: Whether a webhook history is enabled.
+                  cloneSsh:
+                    description: The SSH clone URL.
+                    type: string
+                  description:
+                    description: What the description of the repo is.
+                    type: string
+                  forkPolicy:
+                    description: |-
+                      What the fork policy should be. Defaults to
+                      allow_forks. Valid values are allow_forks, no_public_forks, no_forks.
+                    type: string
+                  hasIssues:
+                    description: If this should have issues turned on or not.
+                    type: boolean
+                  hasWiki:
+                    description: If this should have wiki turned on or not.
                     type: boolean
                   id:
                     type: string
+                  inheritBranchingModel:
+                    description: Whether to inherit branching model from project.
+                    type: boolean
+                  inheritDefaultMergeStrategy:
+                    description: Whether to inherit default merge strategy from project.
+                    type: boolean
+                  isPrivate:
+                    description: If this should be private or not. Defaults to true.
+                    type: boolean
+                  language:
+                    description: What the language of this repository should be.
+                    type: string
+                  link:
+                    description: A set of links to a resource related to this object.
+                      See Link Below.
+                    items:
+                      properties:
+                        avatar:
+                          description: An avatar link to a resource related to this
+                            object. See Avatar Below.
+                          items:
+                            properties:
+                              href:
+                                description: href of the avatar.
+                                type: string
+                            type: object
+                          type: array
+                      type: object
+                    type: array
                   owner:
                     description: |-
                       The owner of this repository. Can be you or any team you
                       have write access to.
                     type: string
-                  repository:
-                    description: The name of the repository.
+                  pipelinesEnabled:
+                    description: Turn on to enable pipelines support.
+                    type: boolean
+                  projectKey:
+                    description: |-
+                      If you want to have this repo associated with a
+                      project.
                     type: string
-                  secretSet:
-                    description: Whether a webhook secret is set.
-                    type: boolean
-                  skipCertVerification:
-                    description: 'Whether to skip certificate verification or not
-                      (Default: true).'
-                    type: boolean
-                  url:
-                    description: Where to POST to.
+                  scm:
+                    description: |-
+                      What SCM you want to use. Valid options are hg or git.
+                      Defaults to git.
+                    type: string
+                  slug:
+                    description: The slug of the repository.
                     type: string
                   uuid:
-                    description: The UUID of the workspace webhook.
+                    description: the uuid of the repository resource.
+                    type: string
+                  website:
+                    description: URL of website associated with this repository.
                     type: string
                 type: object
               conditions:

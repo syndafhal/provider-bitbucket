@@ -7,7 +7,7 @@ spec:
   forProvider:
     description: "Managed with Crossplane Github Provider (generated with Upjet)"
     visibility: public
-    bitbucket:
+    template:
       - owner: upbound
         repository: provider-bitbucket
   providerConfigRef:

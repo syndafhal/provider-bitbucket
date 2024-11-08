@@ -1,4 +1,4 @@
-apiVersion: hook.upbound.io/v1alpha1
+apiVersion: hook.bitbucket.upbound.io/v1alpha1
 kind: Hook
 metadata:
   annotations:
@@ -9,10 +9,8 @@ metadata:
 spec:
   forProvider:
     description: Deploy the code via my webhook
-    repository: aichor-demo
     events:
     - repo:push
-    owner: crossplane
-    url: https://bitbucket.org/crossplane/aichor-demo
-  providerConfigRef:
-    name: default
+    owner: myteam
+    repository: terraform-code
+    url: https://mywebhookservice.mycompany.com/deploy-on-push

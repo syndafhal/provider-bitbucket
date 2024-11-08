@@ -1,0 +1,6 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-bitbucket
+spec:
+  package: upbound/provider-bitbucket:v0.1.0

@@ -28,6 +28,13 @@ type HookInitParameters struct {
 	// Whether a webhook history is enabled.
 	HistoryEnabled *bool `json:"historyEnabled,omitempty" tf:"history_enabled,omitempty"`
 
+	// The owner of this repository. Can be you or any team you
+	// have write access to.
+	Owner *string `json:"owner,omitempty" tf:"owner,omitempty"`
+
+	// The name of the repository.
+	Repository *string `json:"repository,omitempty" tf:"repository,omitempty"`
+
 	// A Webhook secret value. Passing a null or empty secret or not passing a secret will leave the webhook's secret unset. This value is not returned on read and cannot resolve diffs or be imported as its not returned back from bitbucket API.
 	SecretSecretRef *v1.SecretKeySelector `json:"secretSecretRef,omitempty" tf:"-"`
 
@@ -96,21 +103,12 @@ type HookParameters struct {
 
 	// The owner of this repository. Can be you or any team you
 	// have write access to.
-	// +kubebuilder:validation:Required
-	Owner *string `json:"owner" tf:"owner,omitempty"`
+	// +kubebuilder:validation:Optional
+	Owner *string `json:"owner,omitempty" tf:"owner,omitempty"`
 
 	// The name of the repository.
-	// +crossplane:generate:reference:type=github.com/upbound/provider-bitbucket/apis/repository/v1alpha1.Repository
 	// +kubebuilder:validation:Optional
 	Repository *string `json:"repository,omitempty" tf:"repository,omitempty"`
-
-	// Reference to a Repository in repository to populate repository.
-	// +kubebuilder:validation:Optional
-	RepositoryRef *v1.Reference `json:"repositoryRef,omitempty" tf:"-"`
-
-	// Selector for a Repository in repository to populate repository.
-	// +kubebuilder:validation:Optional
-	RepositorySelector *v1.Selector `json:"repositorySelector,omitempty" tf:"-"`
 
 	// A Webhook secret value. Passing a null or empty secret or not passing a secret will leave the webhook's secret unset. This value is not returned on read and cannot resolve diffs or be imported as its not returned back from bitbucket API.
 	// +kubebuilder:validation:Optional
@@ -163,6 +161,8 @@ type Hook struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.description) || (has(self.initProvider) && has(self.initProvider.description))",message="spec.forProvider.description is a required parameter"
 	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.events) || (has(self.initProvider) && has(self.initProvider.events))",message="spec.forProvider.events is a required parameter"
+	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.owner) || (has(self.initProvider) && has(self.initProvider.owner))",message="spec.forProvider.owner is a required parameter"
+	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.repository) || (has(self.initProvider) && has(self.initProvider.repository))",message="spec.forProvider.repository is a required parameter"
 	// +kubebuilder:validation:XValidation:rule="!('*' in self.managementPolicies || 'Create' in self.managementPolicies || 'Update' in self.managementPolicies) || has(self.forProvider.url) || (has(self.initProvider) && has(self.initProvider.url))",message="spec.forProvider.url is a required parameter"
 	Spec   HookSpec   `json:"spec"`
 	Status HookStatus `json:"status,omitempty"`

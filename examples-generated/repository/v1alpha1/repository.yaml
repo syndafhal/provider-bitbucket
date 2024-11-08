@@ -1,4 +1,4 @@
-apiVersion: repository.upbound.io/v1alpha1
+apiVersion: repository.bitbucket.upbound.io/v1alpha1
 kind: Repository
 metadata:
   annotations:
@@ -8,4 +8,4 @@ metadata:
   name: infrastructure
 spec:
   forProvider:
-    owner: crossplane
+    owner: myteam
