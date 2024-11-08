@@ -25,8 +25,7 @@ const (
 	errTrackUsage           = "cannot track ProviderConfig usage"
 	errExtractCredentials   = "cannot extract credentials"
 	errUnmarshalCredentials = "cannot unmarshal bitbucket credentials as JSON"
-	keyUsername             = "username"
-	keyPassword             = "password"
+	keyOauthtoken           = "oauth_token"
 )
 
 // TerraformSetupBuilder builds Terraform a terraform.SetupFn function which
@@ -71,11 +70,8 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 		}*/
 		// set provider configuration
 		ps.Configuration = map[string]any{}
-		if v, ok := creds[keyUsername]; ok {
-			ps.Configuration[keyUsername] = v
-		}
-        if v, ok := creds[keyPassword]; ok {
-			ps.Configuration[keyPassword] = v
+		if v, ok := creds[keyOauthtoken]; ok {
+			ps.Configuration[keyOauthtoken] = v
 		}
 		return ps, nil
 	}
