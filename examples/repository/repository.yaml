@@ -1,14 +1,9 @@
 apiVersion: repository.bitbucket.upbound.io/v1alpha1
 kind: Repository
 metadata:
-  name: hello-crossplane
-  namespace: crossplane-system
+  name: infrastructure
 spec:
   forProvider:
-    description: "Managed with Crossplane Github Provider (generated with Upjet)"
-    visibility: public
-    bitbucket:
-      - owner: upbound
-        repository: provider-bitbucket
+    owner: crossplane
   providerConfigRef:
     name: default
